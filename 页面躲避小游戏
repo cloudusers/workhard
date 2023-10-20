@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>工作累了提提神，躲避小游戏</title>
+    <style>
+        #gameArea {
+            position: relative;
+            height: 600px;
+            width: 400px;
+            border: 1px solid black;
+        }
+        .dot {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: red;
+        }
+        .player {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background-color: blue;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameArea">
+        <div id="player" class="player"></div>
+    </div>
+    <div id="timer">0</div>
+    <script>
+        var gameArea = document.getElementById('gameArea');
+        var player = document.getElementById('player');
+        var timer = document.getElementById('timer');
+
+        var playerSpeed = 5;
+        var dotSpeed = 2;
+        var dotFrequency = 0.01;
+        var keys = {};
+        var dots = [];
+        var startTime = Date.now();
+
+        window.addEventListener('keydown', function(e) {
+            keys[e.keyCode] = true;
+        });
+        window.addEventListener('keyup', function(e) {
+            delete keys[e.keyCode];
+        });
+
+        function gameLoop() {
+            if (keys[37]) {
+                player.style.left = (parseInt(player.style.left) - playerSpeed) + 'px';
+            }
+            if (keys[39]) {
+                player.style.left = (parseInt(player.style.left) + playerSpeed) + 'px';
+            }
+            if (keys[38]) {
+                player.style.top = (parseInt(player.style.top) - playerSpeed) + 'px';
+            }
+            if (keys[40]) {
+                player.style.top = (parseInt(player.style.top) + playerSpeed) + 'px';
+            }
+            dots.forEach(function(dot) {
+                dot.style.top = (parseInt(dot.style.top) + dotSpeed) + 'px';
+                dot.style.left = (parseInt(dot.style.left) + (parseInt(player.style.left) - parseInt(dot.style.left)) / 100) + 'px';
+                if (collision(dot, player)) {
+                    endGame();
+                }
+            });
+            if (Math.random() < dotFrequency) {
+                dots.push(createDot());
+            }
+            var elapsedTime = (Date.now() - startTime) / 1000;
+            dotSpeed = Math.min(5, 2 + elapsedTime / 20);
+            dotFrequency = Math.min(0.05, 0.01 + elapsedTime / 200);
+            timer.innerText = elapsedTime.toFixed(2);
+            requestAnimationFrame(gameLoop);
+        }
+
+        function createDot() {
+            var newDot = document.createElement('div');
+            newDot.classList.add('dot');
+            newDot.style.left = (Math.random() * 380) + 'px';
+            newDot.style.top = '0px';
+            gameArea.appendChild(newDot);
+            return newDot;
+        }
+
+        function collision(div1, div2) {
+            var rect1 = div1.getBoundingClientRect();
+            var rect2 = div2.getBoundingClientRect();
+            return !(rect1.right < rect2.left || 
+                    rect1.left > rect2.right || 
+                    rect1.bottom < rect2.top || 
+                    rect1.top > rect2.bottom);
+        }
+
+        function endGame() {
+            var duration = Date.now() - startTime;
+            alert('游戏结束! 你坚持了 ' + (duration / 1000) + ' 秒.');
+            document.location.reload();
+        }
+
+        player.style.left = '190px';
+        player.style.top = '290px';
+
+        gameLoop();
+    </script>
+</body>
+</html>
